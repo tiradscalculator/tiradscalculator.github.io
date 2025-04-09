@@ -1,1 +1,503 @@
-test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TI-RADS Calculator | Thyroid Nodule Risk Assessment Tool</title>
+    <meta name="description" content="Calculate TI-RADS score for thyroid nodules using ACR TI-RADS guidelines. Evaluate malignancy risk based on ultrasound characteristics.">
+    <meta name="keywords" content="TI-RADS, thyroid nodule, ultrasound, risk assessment, FNA, thyroid cancer">
+    <meta name="author" content="Abdüssamet Aslan, MD">
+    <meta property="og:title" content="TI-RADS Calculator | Thyroid Nodule Risk Assessment">
+    <meta property="og:description" content="Calculate TI-RADS score for thyroid nodules using ACR TI-RADS guidelines. Evaluate malignancy risk based on ultrasound characteristics.">
+    <meta property="og:type" content="website">
+    <meta name="google-site-verification" content="tYmfQCX5hHGBkVdKYhUzUVerl0gkwUr2r2PeAhOK8gs" />
+    <link rel="canonical" href="https://tirads-calculator.com">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .app-banner {
+            transition: transform 0.3s ease-in-out;
+        }
+        .app-banner.hidden {
+            transform: translateY(100%);
+        }
+        @media (max-width: 640px) {
+            .app-banner {
+                padding: 0.75rem;
+            }
+            .app-banner .banner-content {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            .app-banner .banner-info {
+                flex-direction: row;
+                align-items: center;
+                gap: 0.75rem;
+            }
+            .app-banner .banner-actions {
+                width: 100%;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .app-banner .banner-actions .close-btn {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+            }
+            .app-banner img {
+                width: 2.5rem;
+                height: 2.5rem;
+            }
+            .app-banner .banner-text {
+                font-size: 0.875rem;
+            }
+            .app-banner .banner-subtext {
+                font-size: 0.75rem;
+            }
+            .app-banner .download-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 pb-24">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">TI-RADS Calculator</h1>
+            <p class="text-gray-600">Thyroid Imaging Reporting and Data System</p>
+        </header>
+
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-info-circle text-blue-500 text-xl mr-2"></i>
+                    <h2 class="text-xl font-semibold">About TI-RADS</h2>
+                </div>
+                <p class="text-gray-700 mb-4">
+                    The Thyroid Imaging Reporting and Data System (TI-RADS) is a standardized method for evaluating thyroid nodules based on ultrasound characteristics. 
+                    This calculator helps determine the malignancy risk of thyroid nodules by analyzing five key features: composition, echogenicity, shape, margin, and echogenic foci.
+                </p>
+                <div class="flex items-center mb-4">
+                    <i class="fas fa-list-ol text-blue-500 text-xl mr-2"></i>
+                    <h2 class="text-xl font-semibold">Instructions</h2>
+                </div>
+                <ol class="list-decimal list-inside text-gray-700 space-y-2">
+                    <li>Select the most appropriate option for each characteristic</li>
+                    <li>For Echogenic Foci, you may select multiple options if present</li>
+                    <li>Click "Calculate TI-RADS Score" when all selections are made</li>
+                    <li>Review the results and recommendations</li>
+                </ol>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div id="questionnaire" class="space-y-8">
+                    <!-- Questions will be dynamically added here -->
+                </div>
+                
+                <div class="mt-8">
+                    <div id="error-message" class="hidden mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle text-red-500 mr-2"></i>
+                            <p class="text-red-700">Please answer all questions before calculating the score.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center">
+                        <button onclick="calculateScore()" 
+                                class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 text-lg font-semibold flex items-center">
+                            <i class="fas fa-calculator mr-2"></i>
+                            Calculate TI-RADS Score
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="result" class="hidden mt-8">
+                    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-chart-bar text-blue-500 text-xl mr-2"></i>
+                            <h2 class="text-xl font-semibold">TI-RADS Score</h2>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-4xl font-bold text-blue-600 mb-2" id="final-score">0</div>
+                            <p class="text-gray-600 text-lg" id="risk-category">Low Risk</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 rounded-lg p-6 mb-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-list text-blue-500 text-xl mr-2"></i>
+                            <h2 class="text-xl font-semibold">Score Breakdown</h2>
+                        </div>
+                        <div id="score-breakdown" class="space-y-3">
+                            <!-- Score breakdown will be added here -->
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-6">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-clipboard-list text-blue-500 text-xl mr-2"></i>
+                            <h2 class="text-xl font-semibold">Recommendations</h2>
+                        </div>
+                        <div id="recommendations" class="text-gray-700 space-y-2">
+                            <!-- Recommendations will be added here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Store Banner -->
+    <div id="appBanner" class="app-banner fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg p-4 z-50">
+        <div class="max-w-4xl mx-auto">
+            <div class="banner-content flex items-center justify-between">
+                <div class="banner-info flex items-center space-x-4">
+                    <img src="images/icon.png" alt="TI-RADS Calculator App Icon" class="w-12 h-12 rounded-lg">
+                    <div class="banner-text">
+                        <p class="font-semibold">Easy TI-RADS Calculator</p>
+                        <p class="text-sm text-gray-600 banner-subtext">Download our iPhone app for a better experience.</p>
+                    </div>
+                </div>
+                <div class="banner-actions flex items-center space-x-4">
+                    <a href="https://apps.apple.com/tr/app/easy-ti-rads-calculator/id6742818909?ct=tirads-github-page&mt=8" target="_blank" 
+                       class="download-btn bg-black text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-gray-800">
+                        <i class="fab fa-apple"></i>
+                        <span>Download Now</span>
+                    </a>
+                    <button onclick="closeBanner()" class="close-btn text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                id: 'composition',
+                title: 'Composition',
+                description: 'The internal structure of the nodule',
+                icon: 'fas fa-shapes',
+                options: [
+                    {
+                        value: 1,
+                        text: 'Cystic or Almost Completely Cystic',
+                        description: 'Mostly fluid-filled with minimal solid components',
+                        images: ['cases/composition_cystic_2.png', 'cases/composition_cystic_3.png']
+                    },
+                    {
+                        value: 2,
+                        text: 'Spongiform',
+                        description: 'Multiple microcystic components in more than 50% of the nodule',
+                        images: ['cases/composition_spongiform_2.png', 'cases/composition_spongiform_3.png']
+                    },
+                    {
+                        value: 3,
+                        text: 'Mixed Cystic and Solid',
+                        description: 'Both solid and cystic components present',
+                        images: ['cases/composition_mixed_2.png', 'cases/composition_mixed_3.png']
+                    },
+                    {
+                        value: 4,
+                        text: 'Solid or Almost Completely Solid',
+                        description: 'Minimal or no cystic components',
+                        images: ['cases/composition_solid_2.png', 'cases/composition_solid_3.png']
+                    }
+                ]
+            },
+            {
+                id: 'echogenicity',
+                title: 'Echogenicity',
+                description: 'The brightness of the nodule compared to surrounding thyroid tissue',
+                icon: 'fas fa-wave-square',
+                options: [
+                    {
+                        value: 1,
+                        text: 'Anechoic',
+                        description: 'Completely black, no internal echoes',
+                        images: ['cases/echo_acnechoic_2.png']
+                    },
+                    {
+                        value: 2,
+                        text: 'Hyperechoic or Isoechoic',
+                        description: 'Brighter than or equal to surrounding thyroid tissue',
+                        images: ['cases/echo_hyper_1.png', 'cases/echo_hyper_2.png', 'cases/echo_hyper_3.png']
+                    },
+                    {
+                        value: 3,
+                        text: 'Hypoechoic',
+                        description: 'Darker than surrounding thyroid tissue',
+                        images: ['cases/echo_hypo_1.png', 'cases/echo_hypo_2.png', 'cases/echo_hypo_3.png']
+                    },
+                    {
+                        value: 4,
+                        text: 'Very Hypoechoic',
+                        description: 'Much darker than surrounding thyroid tissue',
+                        images: ['cases/echo_very_hypo_1.png', 'cases/echo_very_hypo_2.png', 'cases/echo_very_hypo_3.png']
+                    }
+                ]
+            },
+            {
+                id: 'shape',
+                title: 'Shape',
+                description: 'The orientation of the nodule',
+                icon: 'fas fa-vector-square',
+                options: [
+                    {
+                        value: 0,
+                        text: 'Wider Than Tall',
+                        description: 'Horizontal dimension greater than vertical dimension',
+                        images: ['cases/shape_wider_1.png']
+                    },
+                    {
+                        value: 3,
+                        text: 'Taller Than Wide',
+                        description: 'Vertical dimension greater than horizontal dimension',
+                        images: ['cases/shape_taller_2.png', 'cases/shape_taller_3.png']
+                    }
+                ]
+            },
+            {
+                id: 'margin',
+                title: 'Margin',
+                description: 'The border characteristics of the nodule',
+                icon: 'fas fa-border-style',
+                options: [
+                    {
+                        value: 0,
+                        text: 'Smooth',
+                        description: 'Well-defined, regular border',
+                        images: ['cases/margin_smooth_2.png', 'cases/margin_smooth_3.png']
+                    },
+                    {
+                        value: 2,
+                        text: 'Ill-defined',
+                        description: 'Poorly defined border',
+                        images: ['cases/margin_ill_2.png']
+                    },
+                    {
+                        value: 3,
+                        text: 'Irregular',
+                        description: 'Uneven or jagged border',
+                        images: ['cases/margin_irregular_2.png', 'cases/margin_irregular_3.png']
+                    },
+                    {
+                        value: 3,
+                        text: 'Extra-thyroidal Extension',
+                        description: 'Extension beyond the thyroid capsule',
+                        images: ['cases/margin_extra_1.png', 'cases/margin_extra_2.png']
+                    }
+                ]
+            },
+            {
+                id: 'echogenic_foci',
+                title: 'Echogenic Foci',
+                description: 'Bright spots within the nodule',
+                icon: 'fas fa-dot-circle',
+                multiple: true,
+                options: [
+                    {
+                        value: 0,
+                        text: 'None or Large Comet-tail Artifacts',
+                        description: 'No bright spots or large comet-tail artifacts',
+                        images: ['cases/foci_none_2.png']
+                    },
+                    {
+                        value: 1,
+                        text: 'Macrocalcifications',
+                        description: 'Large calcifications > 1mm',
+                        images: ['cases/foci_macro_2.png']
+                    },
+                    {
+                        value: 2,
+                        text: 'Peripheral (Rim) Calcifications',
+                        description: 'Calcifications at the periphery of the nodule',
+                        images: ['cases/foci_rim_1.png', 'cases/foci_rim_2.png', 'cases/foci_rim_3.png', 'cases/foci_rim_4.png']
+                    },
+                    {
+                        value: 3,
+                        text: 'Punctate Echogenic Foci',
+                        description: 'Small bright spots < 1mm',
+                        images: ['cases/foci_punctate_2.png']
+                    }
+                ]
+            }
+        ];
+
+        let answers = {};
+
+        function renderQuestions() {
+            const questionnaire = document.getElementById('questionnaire');
+            
+            questionnaire.innerHTML = questions.map(question => `
+                <div class="mb-8">
+                    <div class="flex items-center mb-2">
+                        <i class="${question.icon} text-blue-500 text-xl mr-2"></i>
+                        <h2 class="text-xl font-semibold">${question.title}</h2>
+                    </div>
+                    <p class="text-gray-600 mb-4">${question.description}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${question.options.map((option, index) => `
+                            <button onclick="selectOption('${question.id}', ${index})" 
+                                    class="p-4 border rounded-lg hover:border-blue-500 transition-colors text-left bg-white group">
+                                <div class="space-y-3">
+                                    <div class="space-y-1">
+                                        <div class="flex items-center space-x-3">
+                                            <span class="font-medium group-hover:text-blue-600">${option.text}</span>
+                                            <span class="text-sm text-gray-500">(${option.value} points)</span>
+                                        </div>
+                                        <p class="text-sm text-gray-600">${option.description}</p>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        ${option.images.map(img => `
+                                            <div class="bg-gray-100 rounded overflow-hidden group-hover:shadow-md transition-shadow">
+                                                <img src="${img}" alt="${option.text}" class="w-full h-32 object-cover">
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectOption(questionId, index) {
+            const question = questions.find(q => q.id === questionId);
+            
+            if (question.multiple) {
+                if (!answers[questionId]) {
+                    answers[questionId] = [];
+                }
+                
+                const selectedIndex = answers[questionId].indexOf(question.options[index].value);
+                if (selectedIndex === -1) {
+                    answers[questionId].push(question.options[index].value);
+                    event.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
+                } else {
+                    answers[questionId].splice(selectedIndex, 1);
+                    event.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+                }
+            } else {
+                answers[questionId] = question.options[index].value;
+                
+                document.querySelectorAll(`[onclick^="selectOption('${questionId}'`).forEach(btn => {
+                    btn.classList.remove('border-blue-500', 'bg-blue-50');
+                });
+                
+                event.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
+            }
+
+            document.getElementById('error-message').classList.add('hidden');
+        }
+
+        function calculateScore() {
+            const unansweredQuestions = questions.filter(q => {
+                if (q.multiple) {
+                    return !answers[q.id] || answers[q.id].length === 0;
+                }
+                return !answers[q.id] && answers[q.id] !== 0;
+            });
+
+            if (unansweredQuestions.length > 0) {
+                document.getElementById('error-message').classList.remove('hidden');
+                return;
+            }
+
+            let totalScore = 0;
+            const scoreBreakdown = [];
+
+            Object.entries(answers).forEach(([questionId, value]) => {
+                const question = questions.find(q => q.id === questionId);
+                let points = 0;
+                let selectedOptions = [];
+
+                if (Array.isArray(value)) {
+                    points = Math.max(...value);
+                    selectedOptions = value.map(v => {
+                        const option = question.options.find(o => o.value === v);
+                        return option.text;
+                    });
+                } else {
+                    points = value;
+                    const option = question.options.find(o => o.value === value);
+                    selectedOptions = [option.text];
+                }
+
+                totalScore += points;
+                scoreBreakdown.push({
+                    title: question.title,
+                    points: points,
+                    selectedOptions: selectedOptions
+                });
+            });
+
+            const result = document.getElementById('result');
+            const finalScore = document.getElementById('final-score');
+            const riskCategory = document.getElementById('risk-category');
+            const recommendations = document.getElementById('recommendations');
+            const scoreBreakdownElement = document.getElementById('score-breakdown');
+
+            finalScore.textContent = totalScore;
+            
+            let category = '';
+            let recommendationText = '';
+            
+            if (totalScore <= 1) {
+                category = 'TR1 - Benign';
+                recommendationText = 'No FNA needed. Follow-up ultrasound in 2 years.';
+            } else if (totalScore <= 2) {
+                category = 'TR2 - Not Suspicious';
+                recommendationText = 'No FNA needed. Follow-up ultrasound in 2-3 years.';
+            } else if (totalScore <= 4) {
+                category = 'TR3 - Mildly Suspicious';
+                recommendationText = 'Consider FNA if nodule ≥ 2.5 cm. Follow-up ultrasound in 1-2 years.';
+            } else if (totalScore <= 6) {
+                category = 'TR4 - Moderately Suspicious';
+                recommendationText = 'FNA recommended if nodule ≥ 1.5 cm. Follow-up ultrasound in 1 year.';
+            } else {
+                category = 'TR5 - Highly Suspicious';
+                recommendationText = 'FNA recommended if nodule ≥ 1 cm. Consider surgical consultation.';
+            }
+
+            riskCategory.textContent = category;
+            recommendations.innerHTML = `
+                <p class="font-medium">${recommendationText}</p>
+                <p class="text-sm text-gray-600 mt-2">Note: These recommendations are based on the 2017 ACR TI-RADS guidelines. Clinical judgment should always be used in conjunction with these recommendations.</p>
+            `;
+
+            scoreBreakdownElement.innerHTML = scoreBreakdown.map(item => `
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-medium">${item.title}</p>
+                        <p class="text-sm text-gray-600">${item.selectedOptions.join(', ')}</p>
+                    </div>
+                    <span class="text-blue-600 font-semibold">${item.points} points</span>
+                </div>
+            `).join('');
+
+            result.classList.remove('hidden');
+        }
+
+        // App Banner Functions
+        function closeBanner() {
+            const banner = document.getElementById('appBanner');
+            banner.classList.add('hidden');
+            localStorage.setItem('appBannerClosed', 'true');
+        }
+
+        // Check if banner was previously closed
+        if (localStorage.getItem('appBannerClosed') !== 'true') {
+            document.getElementById('appBanner').classList.remove('hidden');
+        }
+
+        renderQuestions();
+    </script>
+</body>
+</html>
